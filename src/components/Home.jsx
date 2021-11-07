@@ -46,10 +46,10 @@ const Home = () => {
   const { addTweets, errorform, validateForm } = tweetsContext;
 
   const [tweets, setTweet] = useState({
-    tweet: "",
+    content: "",
   });
 
-  const { tweet } = tweets;
+  const { content } = tweets;
   const handleChange = (e) => {
     setTweet({
       ...tweets,
@@ -59,7 +59,7 @@ const Home = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (tweet.length > 141 || tweet.trim() === "") {
+    if (content.length > 141 || content.trim() === "") {
       validateForm();
       return;
     }
@@ -68,10 +68,10 @@ const Home = () => {
     addTweets(tweets);
 
     setTweet({
-      tweet: "",
+      content: "",
     });
   };
- 
+
   return (
     <Fragment>
       <Header />
@@ -79,15 +79,15 @@ const Home = () => {
       <ContainerHome>
         <form onSubmit={handleSubmit}>
           <TextAreaTweet
-            name="tweet"
+            name="content"
             id="text-tweet"
             cols="30"
             rows="10"
             placeholder="What you have in mind..."
-            value={tweet}
+            value={content}
             onChange={handleChange}
           ></TextAreaTweet>
-          {tweet.length > 141 ? (
+          {content.length > 141 ? (
             <p>The max char are 140</p>
           ) : (
             <InputTweetSubmit type="submit" disabled>
