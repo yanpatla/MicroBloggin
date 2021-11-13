@@ -1,11 +1,12 @@
-import React from "react";
+import React, { useContext, useState } from "react";
 import { Link } from "react-router-dom";
 import styled from "@emotion/styled";
 import { useHistory } from "react-router";
-import { css } from "@emotion/react";
+import { BrowserRouter as Router } from "react-router-dom";
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 import "firebase/compat/firestore";
+import { FirebaseContext } from "../context/firebase";
 const ContainerHeader = styled.div`
   max-width: 107.6rem;
   width: 95%;
@@ -41,12 +42,23 @@ const Nav = styled.nav`
     }
   }
 `;
+const Input = styled.input`
+  width: 20vw;
+  padding: 1rem;
+  border: 2px solid #cccccc;
+  border-radius: 6px;
+  background-color: #fff;
+  color: #000;
+`;
 const Header = () => {
-    let history = useHistory();
+  let history = useHistory();
+  const { setSearch } = useContext(FirebaseContext);
+  // const [search, setSearch] = useState("");
+
   const signOut = async () => {
     try {
       await firebase.auth().signOut();
-      history.push("/login")
+      history.push("/login");
     } catch (error) {
       console.log(error);
     }
@@ -57,10 +69,17 @@ const Header = () => {
         <div>
           <Link to={"/home"}>Home</Link>
           <Link to={"/profile"}>Profile</Link>
+
+          <Input
+            onChange={(e) => setSearch(e.target.value)}
+            type="text"
+            name=""
+            placeholder="Search Tweets"
+          />
         </div>
         <div>
           <Button className="login-button" onClick={signOut}>
-            Sign in With Google
+            Sign Out
           </Button>
         </div>
       </Nav>

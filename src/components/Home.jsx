@@ -3,12 +3,14 @@ import moment from "moment";
 import { v4 as uuidv4 } from "uuid";
 import Header from "./Header";
 import styled from "@emotion/styled";
-import firebase from "firebase/compat/app";
-import "firebase/compat/auth";
-import "firebase/compat/firestore";
-import TweetContext from "../context/tweet/tweetContext";
+// import firebase from "firebase/compat/app";
+// import "firebase/compat/auth";
+// import "firebase/compat/firestore";
+ 
 import ListTweets from "./ListTweets";
 import AuthContext from "../context/auth/authContext";
+import { FirebaseContext } from "../context/firebase";
+import { Link,useRouteMatch } from "react-router-dom";
 const ContainerHome = styled.div`
   display: flex;
   flex-direction: column;
@@ -16,6 +18,9 @@ const ContainerHome = styled.div`
   width: 95%;
   margin: 0 auto;
   margin-top: 4rem;
+`;
+const ContainerForm = styled.div`
+  position: relative;
 `;
 const ContainerTweet = styled.main`
   margin-top: 5rem;
@@ -28,22 +33,43 @@ const TextAreaTweet = styled.textarea`
   color: #fff;
 `;
 const InputTweetSubmit = styled.button`
+  position: absolute;
+  bottom: 1.8rem;
+  right: 1.5rem;
   width: 6.8rem;
   height: 3.4rem;
   display: block;
   background: #007bff;
   border-radius: 4px;
-  position: absolute;
   border: none;
   color: #fff;
+  z-index: 1100;
+`;
+const CharsErrorContainer = styled.div`
+  position: absolute;
+  bottom: 3rem;
+  left: 2rem;
+  display: inline-block;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+`;
+const CharsErrorP = styled.p`
+  font-size: 1.6rem;
+  margin: 0;
+  padding: 0.5rem;
 `;
 
 const Home = () => {
-  const authContext = useContext(AuthContext);
-  const { users, addUsers } = authContext;
-  const tweetsContext = useContext(TweetContext);
+ 
+  const { currentuser } = useContext(AuthContext);
+  const { firebase} = useContext(FirebaseContext);
 
-  const { addTweets, errorform, validateForm } = tweetsContext;
+  console.log(currentuser);
+
+  
+
+ 
 
   const [tweets, setTweet] = useState({
     content: "",
@@ -57,15 +83,24 @@ const Home = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (content.length > 141 || content.trim() === "") {
-      validateForm();
+      
       return;
     }
-    tweets.date = moment().format("MMM Do YY");
-    tweets.tweetID = uuidv4();
-    addTweets(tweets);
+    const contentTweets = {
+      content,
+      likes: 0,
+      date: Date.now(),
+      userCreator: {
+        id: currentuser.uid,
+        name: currentuser.displayName,
+      },
+      hasVoted: [],
+    };
+    firebase.db.collection("tweets").add(contentTweets);
 
     setTweet({
       content: "",
@@ -77,27 +112,35 @@ const Home = () => {
       <Header />
 
       <ContainerHome>
-        <form onSubmit={handleSubmit}>
-          <TextAreaTweet
-            name="content"
-            id="text-tweet"
-            cols="30"
-            rows="10"
-            placeholder="What you have in mind..."
-            value={content}
-            onChange={handleChange}
-          ></TextAreaTweet>
-          {content.length > 141 ? (
-            <p>The max char are 140</p>
-          ) : (
-            <InputTweetSubmit type="submit" disabled>
-              Tweet
-            </InputTweetSubmit>
-          )}
-          <InputTweetSubmit type="submit">Tweet</InputTweetSubmit>
-        </form>
-
+        <ContainerForm>
+          <form onSubmit={handleSubmit}>
+            <TextAreaTweet
+              name="content"
+              id="text-tweet"
+              cols="30"
+              rows="10"
+              placeholder="What you have in mind..."
+              value={content}
+              onChange={handleChange}
+            ></TextAreaTweet>
+            {content.length > 141 ? (
+              <>
+                <CharsErrorContainer>
+                  <CharsErrorP>The tweet can't </CharsErrorP>
+                </CharsErrorContainer>
+                <InputTweetSubmit type="submit" disabled>
+                  Tweet
+                </InputTweetSubmit>
+              </>
+            ) : (
+              <InputTweetSubmit type="submit">Tweet</InputTweetSubmit>
+            )}
+          </form>
+        </ContainerForm>
         <ContainerTweet>
+         
+     
+  
           <ListTweets />
         </ContainerTweet>
       </ContainerHome>

@@ -1,31 +1,21 @@
-import { ADD_USER } from "../../types";
 import React, { useReducer } from "react";
 
 import AuthContext from "./authContext";
-import authReducer from "./authReducer";
+
+import useAuth from "../../hooks/useAuth";
 
 const AuthState = (props) => {
-  const initialState = {
-    users: [],
-  };
-  const [state, dispatch] = useReducer(authReducer, initialState);
-  const addUsers = (user) => {
-    dispatch({
-      type: ADD_USER,
-      payload: user,
-    });
-  };
+  const currentuser = useAuth();
+  console.log(currentuser);
 
   return (
     <AuthContext.Provider
       value={{
-        users: state.users,
-
-        addUsers,
+        currentuser,
       }}
     >
       {props.children}
     </AuthContext.Provider>
   );
 };
-export default AuthState
+export default AuthState;

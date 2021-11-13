@@ -1,9 +1,11 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Header from "./Header";
 import styled from "@emotion/styled";
 import { css } from "@emotion/react";
 import AuthContext from "../context/auth/authContext";
 import { FirebaseContext } from "../context/firebase";
+import { useParams } from "react-router-dom";
+import Error404 from "./error/404";
 const ContainerTweet = styled.main`
   display: flex;
   flex-direction: column;
@@ -43,10 +45,35 @@ const Subtitle = styled.h3`
   font-weight: 400;
 `;
 
-const Profile = () => {
-  const firebaseContext = useContext(FirebaseContext);
-  const { currentuser } = useContext(AuthContext);
+const UserProfile = () => {
+  const [userprofile, setUserProfile] = useState("");
+  const [error, setError] = useState(false);
 
+  const { firebase } = useContext(FirebaseContext);
+  const { currentuser } = useContext(AuthContext);
+  let { profileID } = useParams();
+
+  useEffect(() => {
+    if (profileID) {
+      const getUserProfile = async () => {
+        const userProfileQuery = await firebase.db
+          .collection("tweets")
+          .doc(profileID);
+        const userProfile = await userProfileQuery.get();
+
+        if (userProfile.exists) {
+          setUserProfile(userProfile.data());
+        } else {
+          setError(true);
+        }
+        // setUserProfile(userProfile.data());
+      };
+      getUserProfile();
+    }
+  }, [profileID]);
+  const { userCreator } = userprofile;
+ 
+  if (error) return <Error404 />;
   return (
     <>
       <Header />
@@ -54,12 +81,10 @@ const Profile = () => {
         <div className="title_profile">
           <TitleProfile>Profile</TitleProfile>
         </div>
-         
+
         <div className="user_name">
           <Subtitle>User Name</Subtitle>
-          {currentuser && (
-            <InputUser type="text" value={currentuser.displayName} />
-          )}
+          {userCreator && <InputUser type="text" value={userCreator.name} />}
           <InputSave>Save</InputSave>
         </div>
       </ContainerTweet>
@@ -67,4 +92,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default UserProfile;
